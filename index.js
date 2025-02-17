@@ -19,7 +19,7 @@ async function fetch() {
 
 async function fetch_biwa() {
   try {
-    let anu = await axios.get('https://gateway.okeconnect.com/api/mutasi/qris/OK2246540/669040117377193032246540OKCTEC2622AB8B400DEDD09F773150DAF3A8');
+    let anu = await axios.get('https://gateway.okeconnect.com/api/mutasi/qris/OK2223186/480989917383217222223186OKCT85CA4B7C99FBC19AF9D3CD9D93B8C260');
     let res = anu.data;
     fs.writeFileSync('mutasi_biwa.json', JSON.stringify(res, null, 2));
     let currentTime = moment().tz('Asia/Jakarta').format('YYYY-MM-DD HH:mm:ss');
