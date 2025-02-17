@@ -1,17 +1,20 @@
 const express = require('express');
 const axios = require('axios');
 const fs = require('fs');
+const path = require('path');
 const moment = require('moment-timezone');
 const chalk = require('chalk');
 const cron = require('node-cron');
 const os = require('os');
-const osu = require('os-utils');
+const osu = require('node-os-utils');
 
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Middleware untuk menyajikan file statis dari folder "public"
-app.use(express.static('public'));
+// Middleware untuk menyajikan index.html dari root folder
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
 
 // Fungsi untuk mengambil dan menyimpan data mutasi
 async function fetchAndSaveData() {
@@ -40,19 +43,29 @@ app.get('/mutasi.json', (req, res) => {
   }
 });
 
-// Endpoint untuk menampilkan informasi sistem di index.html
-app.get('/info', (req, res) => {
-  osu.cpuUsage((cpu) => {
+// Endpoint untuk menampilkan informasi server
+app.get('/info', async (req, res) => {
+  try {
+    const cpuUsage = await osu.cpu.usage();
+    const memInfo = await osu.mem.info();
+    const driveInfo = await osu.drive.info();
+
     let info = {
       hostname: os.hostname(),
       platform: os.platform(),
-      uptime: os.uptime(),
-      free_memory: os.freemem(),
-      total_memory: os.totalmem(),
-      cpu_usage: cpu,
+      uptime: (os.uptime() / 3600).toFixed(2) + " hours",
+      cpu_usage: cpuUsage + " %",
+      free_memory: memInfo.freeMemMb + " MB",
+      total_memory: memInfo.totalMemMb + " MB",
+      used_disk: driveInfo.usedGb + " GB",
+      free_disk: driveInfo.freeGb + " GB",
+      total_disk: driveInfo.totalGb + " GB"
     };
+
     res.json(info);
-  });
+  } catch (error) {
+    res.status(500).json({ error: 'Gagal mengambil informasi sistem' });
+  }
 });
 
 // Jalankan server
