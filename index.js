@@ -29,15 +29,35 @@ async function fetch_biwa() {
   }
 }
 
-// Fungsi utama untuk menjalankan fetch() dan fetch_biwa() bergantian
+async function fetch_roy() {
+  try {
+    let anu = await axios.get('https://gateway.okeconnect.com/api/mutasi/qris/OK1666484/863463217401195201666484OKCT0C35E392D85B6D4587E5D4153963E8B7');
+    let res = anu.data;
+    fs.writeFileSync('mutasi_roy.json', JSON.stringify(res, null, 2));
+    let currentTime = moment().tz('Asia/Jakarta').format('YYYY-MM-DD HH:mm:ss');
+    console.log(chalk.green.bold('INFO ') + chalk.green.bold(`[`) + chalk.white.bold(`${currentTime}`) + chalk.green.bold(`]: `) + chalk.cyan('Data saved to mutasi_roy.json'));
+  } catch (error) {
+    console.error(chalk.red('Error fetching or saving data:', error));
+  }
+}
+
+// Fungsi utama untuk menjalankan fetch(), fetch_biwa(), dan fetch_roy() bergantian
 async function run() {
   await fetch(); // Jalankan fetch()
   console.log(chalk.yellow('Waiting for 6 seconds before running fetch_biwa...'));
+  
   setTimeout(async () => {
     await fetch_biwa(); // Jalankan fetch_biwa() setelah 6 detik
-    console.log(chalk.yellow('Waiting for 6 seconds before running fetch() again...'));
-    setTimeout(run, 6000); // Rekursi untuk kembali menjalankan fetch() setelah 6 detik
-  }, 6000); // Jeda 6 detik
+    console.log(chalk.yellow('Waiting for 6 seconds before running fetch_roy...'));
+
+    setTimeout(async () => {
+      await fetch_roy(); // Jalankan fetch_roy() setelah 6 detik
+      console.log(chalk.yellow('Waiting for 6 seconds before running fetch() again...'));
+      
+      setTimeout(run, 6000); // Rekursi untuk kembali menjalankan fetch() setelah 6 detik
+    }, 6000);
+
+  }, 6000);
 }
 
 // Jalankan proses
@@ -58,6 +78,10 @@ app.get('/mutasi.json', (req, res) => {
 
 app.get('/mutasi_biwa.json', (req, res) => {
   res.sendFile(process.cwd() + '/mutasi_biwa.json');
+});
+
+app.get('/mutasi_roy.json', (req, res) => {
+  res.sendFile(process.cwd() + '/mutasi_roy.json');
 });
 
 app.get('/info', async (req, res) => {
